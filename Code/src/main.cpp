@@ -1,0 +1,267 @@
+#include "BluetoothSerial.h"
+#include "Config.h"
+#include "RocketData.h"
+#include "SensorIMU.h"
+#include "SensorBaro.h"
+#include "FlightLogic.h"
+#include "DataLogger.h"
+#include "Recovery.h"
+
+Servo servo1;
+Servo servo2;
+Servo servo3;
+
+// --- 객체 생성 ---
+BluetoothSerial SerialBT;
+SensorIMU imu;
+SensorBaro baro;
+FlightLogic logic;
+DataLogger logger;
+SensorData data;
+Recovery recovery;
+
+// 테스크 코어0
+void flightTask(void *pvParam)
+{
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    const TickType_t xFrequency = pdMS_TO_TICKS(1);
+
+    bool buzzerState = true;
+    bool parachute1Fired = false;
+    bool parachute2Fired = false;
+    bool separationFired = false;
+
+    float t_ax, t_ay, t_az;
+    float t_gx, t_gy, t_gz;
+
+    while (true)
+    {
+        uint8_t sensor_update= 0;
+        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+        data.timestamp = micros();
+
+        // 센서 데이터 수집
+        if (imu.isAccelReady())
+        {
+            sensor_update |= UPDATE_ACCEL;
+            imu.readAccel(t_ax, t_ay, t_az);
+            data.ax = t_ax;
+            data.ay = t_ay;
+            data.az = t_az;
+        }
+
+        if (imu.isGyroReady())
+        {
+            sensor_update |= UPDATE_GYRO;
+            imu.readGyro(t_gx, t_gy, t_gz);
+            data.gx = t_gx;
+            data.gy = t_gy;
+            data.gz = t_gz;
+        }
+
+        if (baro.isReady())
+        {
+            sensor_update |= UPDATE_BARO;
+            data.pressure = baro.getPressure();
+            data.raw_altitude = baro.getAltitude();
+        }
+        // 비행 로직 업데이트
+        logic.update(data,sensor_update);
+
+        // 비행 상태에 따른 액션
+        if (data.flight_state == 0)
+        { // 대기 모드
+        }
+        else if (data.flight_state == 1)
+        { // 상승 중
+        }
+        else if (data.flight_state == 2 && !separationFired)
+        { // 분리
+            recovery.trigger(SEPARATION);
+            separationFired = true;
+        }
+        else if (data.flight_state == 3&& !parachute1Fired)
+        { // EJ1
+            recovery.trigger(EJECT_1);
+            parachute1Fired = true;
+        }
+        else if (data.flight_state == 4 && !parachute2Fired)
+        { // EJ2
+            recovery.trigger(EJECT_2);
+            parachute2Fired = true;
+        }
+        // 데이터 저장
+        logger.push(data);
+        recovery.update();
+    }
+}
+
+void buzzerTask(void *pvParam) {
+    pinMode(BUZZER_PIN, OUTPUT);
+    digitalWrite(BUZZER_PIN, LOW); // 초기 상태 끔
+
+    while (true) {
+        switch (data.flight_state) {
+            
+            // [상태 0] 대기 모드 (Ready)
+            //(느리게 깜빡임)
+            case 0:
+                digitalWrite(BUZZER_PIN, HIGH);
+                vTaskDelay(100 / portTICK_PERIOD_MS); // 0.1초 켜짐
+                digitalWrite(BUZZER_PIN, LOW);
+                vTaskDelay(2000 / portTICK_PERIOD_MS); // 2초 꺼짐
+                break;
+
+            // [상태 1] 상승 중 (Boost/Coast)
+            case 1:
+                digitalWrite(BUZZER_PIN, LOW);
+                break;
+
+            // [상태 2] 분리/사출 대기 (Apogee Check)
+            // 특징: "삐비빅, 삐비빅" (경고음)
+            case 2:
+                for(int i=0; i<3; i++) {
+                    digitalWrite(BUZZER_PIN, HIGH);
+                    vTaskDelay(50 / portTICK_PERIOD_MS);
+                    digitalWrite(BUZZER_PIN, LOW);
+                    vTaskDelay(50 / portTICK_PERIOD_MS);
+                }
+                vTaskDelay(500 / portTICK_PERIOD_MS);
+                break;
+            case 3:
+                for(int i=0; i<3; i++) {
+                    digitalWrite(BUZZER_PIN, HIGH);
+                    vTaskDelay(50 / portTICK_PERIOD_MS);
+                    digitalWrite(BUZZER_PIN, LOW);
+                    vTaskDelay(50 / portTICK_PERIOD_MS);
+                }
+                vTaskDelay(500 / portTICK_PERIOD_MS);
+                break;
+
+            // [상태 4] 하강 및 착륙 (Descent / Landed)
+            // (길고 시끄러운 소리)
+            case 4:
+                digitalWrite(BUZZER_PIN, HIGH);
+                vTaskDelay(1000 / portTICK_PERIOD_MS); // 1초 길게
+                digitalWrite(BUZZER_PIN, LOW);
+                vTaskDelay(1000 / portTICK_PERIOD_MS); // 1초 쉬고
+                break;
+                
+            default:
+                vTaskDelay(100 / portTICK_PERIOD_MS);
+                break;
+        }
+    }
+}
+
+void setup()
+{
+    Serial.begin(115200);
+    SerialBT.begin("ALTIS2026");
+    SPI.begin();
+    pinMode(VAT_PIN, INPUT);
+
+    bool sysOK = true;
+    if (!imu.begin())
+    {
+        Serial.println("IMU Fail");
+        sysOK = false;
+        SerialBT.println("ERR: IMU Init Failed!");
+    }
+    if (!baro.begin())
+    {
+        Serial.println("Baro Fail");
+        sysOK = false;
+        SerialBT.println("ERR: Barometer Init Failed!");
+    }
+    if (!logger.begin())
+    {
+        Serial.println("SD Fail");
+        sysOK = false;
+        SerialBT.println("ERR: SD Card Init Failed!");
+    }
+    if (!recovery.begin())
+    {
+        Serial.println("Recovery Fail");
+        sysOK = false;
+        SerialBT.println("ERR: Recovery System Init Failed!");
+    }
+    if (!sysOK)
+    {
+        while (1)
+        {
+            SerialBT.println("ERR: Sensor Check Failed!");
+            digitalWrite(BUZZER_PIN, HIGH);
+            delay(1000);
+            ESP.restart();
+        }
+    }
+
+    logic.reset();
+    SerialBT.println("System OK. Waiting for Config...");
+
+    // 대기 모드
+    bool isArmed = false;
+    while (!isArmed)
+    {
+        long sum = 0;
+        for(int i=0; i<10; i++) {
+            sum += analogRead(VAT_PIN);
+        }
+        SerialBT.printf("Vattery Voltage: %.2f V\n", sum * 0.0006667);
+        
+        if (SerialBT.available())
+        {
+            String s = SerialBT.readStringUntil('\n');
+            s.trim();
+
+            if (isdigit(s.charAt(0)))
+            {
+                float p = s.toFloat();
+                baro.setSeaLevelPressure(p);
+                SerialBT.printf("Pressure Set: %.2f\n", p);
+            }
+            else if (s.equalsIgnoreCase("READY"))
+            {
+                SerialBT.println("ARMED!");
+                isArmed = true;
+            }
+            else if (s.equalsIgnoreCase("EJ1"))
+            {
+                SerialBT.println("test EJ1");
+                recovery.trigger(4);
+            }
+            else if (s.equalsIgnoreCase("EJ2"))
+            {
+                SerialBT.println("test EJ2");
+                recovery.trigger(5);
+            }
+            else if (s.equalsIgnoreCase("SEP"))
+            {
+                SerialBT.println("test SEP");
+                recovery.trigger(6);
+            }
+        }
+        delay(100);
+    }
+
+    // 비행 태스크 시작 (Core 0, High Priority)
+    xTaskCreatePinnedToCore(flightTask, "Flight", 10000, NULL, 10, NULL, 0);
+    // 버저 태스크 (Core 1, 우선순위 낮음 1)
+    xTaskCreatePinnedToCore(buzzerTask, "Buzzer", 2048, NULL, 1, NULL, 1);
+}
+
+void loop()
+{
+    if (SerialBT.available()) {
+        String cmd = SerialBT.readStringUntil('\n');
+        cmd.trim();
+
+        if (cmd.equalsIgnoreCase("REBOOT")) {
+            SerialBT.println("SYSTEM REBOOTING...");
+            delay(100);
+            ESP.restart();
+        }
+    }
+    delay(100);
+}

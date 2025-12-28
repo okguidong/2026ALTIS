@@ -1,0 +1,74 @@
+# 🚀 ALTIS Rocket Avionics System
+
+![Version](https://img.shields.io/badge/Version-1.0.0-blue?style=flat-square)
+![Status](https://img.shields.io/badge/Status-Flight%20Ready-success?style=flat-square)
+![Platform](https://img.shields.io/badge/Platform-ESP32-orange?style=flat-square)
+![Author](https://img.shields.io/badge/Author-Ok%20Gwidong-green?style=flat-square)
+
+**ESP32 기반의 2단 로켓 비행 컴퓨터(Flight Computer) 펌웨어**입니다.
+IMU와 기압 센서 데이터를 센서 퓨전(Sensor Fusion)하여 비행 상태를 실시간으로 판단하며, 설정된 로직에 따라 서보모터 또는 파이로(Pyro) 장치를 제어하여 사출 및 단분리 미션을 수행합니다.
+
+---
+
+## Developer Info
+- **Name**: 옥귀동 (Ok Gwidong)
+- **Organization**: Rocket Club ALTIS
+- **Role**: Avionics Software and Electronic Manager
+- **Last Updated**: 2025-12-29
+
+## 🛠 System Specs
+### Hardware
+- **MCU**: ESP32-WROOM (Dual Core, 240MHz)
+- **IMU**: Bosch BMI088 (6-DOF, SPI)
+- **Barometer**: Bosch BMP384 (High Precision, SPI)
+- **Storage**: SD Card (SDMMC 4-bit Mode)
+- **Actuators**: 
+  - 3x Servo Motors (PWM)
+  - 3x Pyro Channels (MOSFET Control)
+- **Power**: 2S/3S Li-Po Battery (Voltage Monitored via ADC)
+
+### Software Features
+- **OS**: FreeRTOS (Dual Core Tasking)
+  - `Core 0`: Flight Logic & Sensor Fusion (High Priority)
+  - `Core 1`: Data Logging & User Interface
+- **Recovery Logic**: Dual Stage Recovery (Drogue & Main) + Stage Separation
+- **Telemetry**: Bluetooth Serial (SPP) for Real-time Monitoring & Command
+- **Safety**: 
+  - Auto-disarm/shutdown for actuators
+  - Watchdog & Fail-safe logic
+
+---
+
+## Pin Map (Configuration)
+
+| Component | Pin (GPIO) | Note |
+| :--- | :---: | :--- |
+| **IMU (BMI088)** | 25, 33 | CS (Accel, Gyro) |
+| **Barometer** | 32 | CS |
+| **Servo 1** | 26 | Eject 1 (Drogue) |
+| **Servo 2** | 27 | Eject 2 (Main) |
+| **Servo 3** | 22 | Separation |
+| **Pyro 1~3** | 21, 5, 17 | Ignition Control |
+| **Buzzer** | 16 | Status Notification |
+| **Battery Check** | 36 (VP) | Voltage Divider Input |
+
+---
+
+## Bluetooth Commands
+비행 전 블루투스 터미널을 통해 시스템을 제어할 수 있습니다.
+
+| Command | Description |
+| :--- | :--- |
+| `READY` | 시스템을 **ARM** 상태로 전환 (발사 준비) |
+| `EJ1` | 사출 1번(Drogue) 테스트 트리거 |
+| `EJ2` | 사출 2번(Main) 테스트 트리거 |
+| `SEP` | 단분리(Separation) 테스트 트리거 |
+| `REBOOT` | 시스템 원격 재부팅 |
+
+---
+
+## Changelog
+- **2025-12-29**: 
+  - `Recovery` 시스템 라이브러리화 완료 (서보/파이로 통합 제어 구조)
+  - 배터리 전압 모니터링 기능 추가 (블루투스 상태 전송)
+  - 비행 로직(FlightLogic) 및 상태 머신 안정화
