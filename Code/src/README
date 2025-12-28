@@ -1,10 +1,4 @@
-# 🚀 ALTIS Rocket Avionics System
-
-![Version](https://img.shields.io/badge/Version-1.0.0-blue?style=flat-square)
-![Status](https://img.shields.io/badge/Status-Flight%20Ready-success?style=flat-square)
-![Platform](https://img.shields.io/badge/Platform-ESP32-orange?style=flat-square)
-![Author](https://img.shields.io/badge/Author-Ok%20Gwidong-green?style=flat-square)
-
+# ALTIS Rocket Avionics System
 **ESP32 기반의 2단 로켓 비행 컴퓨터(Flight Computer) 펌웨어**입니다.
 IMU와 기압 센서 데이터를 센서 퓨전(Sensor Fusion)하여 비행 상태를 실시간으로 판단하며, 설정된 로직에 따라 서보모터 또는 파이로(Pyro) 장치를 제어하여 사출 및 단분리 미션을 수행합니다.
 
