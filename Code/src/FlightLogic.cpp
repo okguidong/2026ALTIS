@@ -128,13 +128,13 @@ void FlightLogic::checkEJ1(SensorData &data)
     if (millis() - _launchTime > EJECT1_TIMEOUT_MS)
     {
         timeOut = 1;
-        data.ej1_state |= 0x01;
+        data.ej1_state |= 0x02;
     }
 
     if (data.filt_altitude >= EJECT_ALTITUDE)
     {
         altReached = 1;
-        data.ej1_state |= 0x02;
+        data.ej1_state |= 0x01;
     }
 
     if (timeOut && altReached)
@@ -151,13 +151,13 @@ void FlightLogic::checkEJ2(SensorData &data)
     if (millis() - _launchTime > EJECT2_TIMEOUT_MS)
     {
         timeOut = 1;
-        data.ej2_state |= 0x01;
+        data.ej2_state |= 0x02;
     }
 
     if (data.filt_altitude >= EJECT_ALTITUDE)
     {
         altReached = 1;
-        data.ej2_state |= 0x02;
+        data.ej2_state |= 0x01;
     }
 
     if (timeOut && altReached)
@@ -174,13 +174,13 @@ void FlightLogic::checkSeparation(SensorData &data)
     if (millis() - _launchTime > SEPARATION_TIMEOUT_MS)
     {
         timeOut = 1;
-        data.sep_state |= 0x01;
+        data.sep_state |= 0x02;
     }
 
     if (data.filt_altitude >= SEPARATION_ALTITUDE)
     {
         altReached = 1;
-        data.sep_state |= 0x02;
+        data.sep_state |= 0x01;
     }
 
     if (timeOut && altReached)

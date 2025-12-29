@@ -54,7 +54,7 @@
 #define UPDATE_BARO 0x04
 
 // --- Parameters ---
-#define ALT_LPF_ALPHA 0.1f         // 저주파 통과 필터 계수
+#define ALT_LPF_ALPHA 0.1f         // 고도 저주파 통과 필터 계수
 #define LAUNCH_THRESHOLD_G 3.0f    // 발사 감지 임계값 (3G)
 #define EJECT1_TIMEOUT_MS 6000      // 발사 후 1단부 강제 사출 시간 (ms)
 #define EJECT2_TIMEOUT_MS 10000      // 발사 후 2단부 강제 사출 시간 (ms)
