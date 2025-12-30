@@ -16,16 +16,12 @@ void Navigation::update(SensorData &data, uint8_t sensor_update)
     applyFilter(data, sensor_update);
 
     // 1단계: 아직 발사 안 됨 (대기 상태)
-    if (!_launched)
+    if (data.flight_state == 0)
     {
-        data.flight_state = 0; // Ready
-        if (sensor_update & UPDATE_ACCEL)
-        {
 
-        }
     }
     // 2단계: 발사는 됐는데, 아직 분리는 안 됨 (상승 1단계)
-    else if (!_separated)
+    else if (data.flight_state == 1)
     {
         data.flight_state = 1; // Boost / Coast
         if (sensor_update & UPDATE_BARO)
@@ -34,16 +30,12 @@ void Navigation::update(SensorData &data, uint8_t sensor_update)
         }
     }
     // 3단계: 분리는 됐는데, 아직 사출은 안 됨 (상승 2단계 또는 활공)
-    else if (!_EJ1)
+    else if (data.flight_state == 2)
     {
-        data.flight_state = 2; // Apogee Check
-        if (sensor_update & UPDATE_BARO)
-        {
 
-        }
     }
     // 4단계: 1단부 사출까지 됨 (하강 상태)
-    else if (!_EJ2)
+    else if (data.flight_state == 3)
     {
         data.flight_state = 3; // Descent
         if (sensor_update & UPDATE_BARO)
