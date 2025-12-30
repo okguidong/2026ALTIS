@@ -5,7 +5,7 @@
 #include <Wire.h>
 #include <SPI.h>
 
-#include "bmp3_api/bmp3.h"
+#include "bmp3.h"
 
 // SparkFun's default I2C address is opposite of Bosch's default
 #define BMP384_I2C_ADDRESS_DEFAULT BMP3_ADDR_I2C_SEC    // 0x77
