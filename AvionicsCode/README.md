@@ -26,7 +26,7 @@ IMU와 기압 센서 데이터를 센서 퓨전(Sensor Fusion)하여 비행 상�
 - **OS**: FreeRTOS (Dual Core Tasking)
   - `Core 0`: Flight Logic & Sensor Fusion (High Priority)
   - `Core 1`: Data Logging & User Interface
-- **Recovery Logic**: Dual Stage Recovery (Drogue & Main) + Stage Separation
+- **Recovery Logic**: Stage Recovery (Booster Recovery & Main) + Stage Separation
 - **Telemetry**: Bluetooth Serial (SPP) for Real-time Monitoring & Command
 - **Safety**: 
   - Auto-disarm/shutdown for actuators
@@ -55,10 +55,10 @@ IMU와 기압 센서 데이터를 센서 퓨전(Sensor Fusion)하여 비행 상�
 | Command | Description |
 | :--- | :--- |
 | `READY` | 시스템을 **ARMMING** 상태로 전환 (발사 준비) |
-| `EJ1` | 사출(Ejection) 1번 테스트 트리거 |
-| `EJ2` | 사출(Ejection) 2번 테스트 트리거 |
-| `SEP` | 단분리(Separation) 테스트 트리거 |
-| `REBOOT` | 시스템 원격 재부팅 |
+| `EJ1` | **사출(Ejection) 1번** 테스트 트리거 |
+| `EJ2` | **사출(Ejection) 2번** 테스트 트리거 |
+| `SEP` | **단분리(Separation)** 테스트 트리거 |
+| `REBOOT` | 시스템 원격 **재부팅** |
 
 ---
 
