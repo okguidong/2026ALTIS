@@ -8,6 +8,7 @@ IMU와 기압 센서 데이터를 센서 퓨전(Sensor Fusion)하여 비행 상�
 - **Name**: 옥귀동 (Ok Gwidong)
 - **Organization**: Rocket Club ALTIS
 - **Role**: Avionics Software and Electronic Manager
+- **Contact**: okd1031@gnu.ac.kr , 010-8985-2116
 - **Last Updated**: 2025-12-29
 
 ## 🛠 System Specs
@@ -38,10 +39,10 @@ IMU와 기압 센서 데이터를 센서 퓨전(Sensor Fusion)하여 비행 상�
 | Component | Pin (GPIO) | Note |
 | :--- | :---: | :--- |
 | **IMU (BMI088)** | 25, 33 | CS (Accel, Gyro) |
-| **Barometer** | 32 | CS |
-| **Servo 1** | 26 | Eject 1 (Drogue) |
-| **Servo 2** | 27 | Eject 2 (Main) |
-| **Servo 3** | 22 | Separation |
+| **IMU (BMI088)** | 34, 35 | INT1,INT3 (Accel, Gyro) |
+| **Barometer (BMP388)** | 32 | CS |
+| **Barometer (BMP388)** | 39 | INT |
+| **Servo 1~3** | 26, 27, 22 | Eject, Separation Control |
 | **Pyro 1~3** | 21, 5, 17 | Ignition Control |
 | **Buzzer** | 16 | Status Notification |
 | **Battery Check** | 36 (VP) | Voltage Divider Input |
@@ -53,9 +54,9 @@ IMU와 기압 센서 데이터를 센서 퓨전(Sensor Fusion)하여 비행 상�
 
 | Command | Description |
 | :--- | :--- |
-| `READY` | 시스템을 **ARM** 상태로 전환 (발사 준비) |
-| `EJ1` | 사출 1번(Drogue) 테스트 트리거 |
-| `EJ2` | 사출 2번(Main) 테스트 트리거 |
+| `READY` | 시스템을 **ARMMING** 상태로 전환 (발사 준비) |
+| `EJ1` | 사출(Ejection) 1번 테스트 트리거 |
+| `EJ2` | 사출(Ejection) 2번 테스트 트리거 |
 | `SEP` | 단분리(Separation) 테스트 트리거 |
 | `REBOOT` | 시스템 원격 재부팅 |
 
