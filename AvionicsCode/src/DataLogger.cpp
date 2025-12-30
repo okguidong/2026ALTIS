@@ -28,7 +28,7 @@ void DataLogger::task(void *param) {
             
             f.write((uint8_t*)&d, sizeof(SensorData));
             
-            // 50개 데이터마다 저장 (Flush)
+            // 50개 데이터마다 Flush
             if (++count >= 50) { 
                 f.flush(); 
                 count = 0; 

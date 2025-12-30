@@ -17,8 +17,6 @@ void FlightLogic::reset()
 
 void FlightLogic::update(SensorData &data, uint8_t sensor_update)
 {
-    applyFilter(data, sensor_update);
-
     // 1단계: 아직 발사 안 됨 (대기 상태)
     if (!_launched)
     {
@@ -60,52 +58,6 @@ void FlightLogic::update(SensorData &data, uint8_t sensor_update)
     {
         data.flight_state = 4; // Descent
     }
-}
-
-void FlightLogic::applyFilter(SensorData &data, uint8_t sensor_update)
-{
-    if (sensor_update & UPDATE_BARO)
-    {
-        applyFilter_baro(data);
-    }
-    if (sensor_update & UPDATE_GYRO)
-    {
-        applyFilter_gyro(data);
-    }
-    if (sensor_update & UPDATE_ACCEL)
-    {
-        applyFilter_accel(data);
-    }
-}
-void FlightLogic::applyFilter_gyro(SensorData &data)
-{
-}
-
-void FlightLogic::applyFilter_accel(SensorData &data)
-{
-}
-
-void FlightLogic::applyFilter_baro(SensorData &data)
-{
-    if (_prevAlt == 0.0f && data.raw_altitude != 0.0f)
-    {
-        _prevAlt = data.raw_altitude;
-    }
-
-    data.filt_altitude = (ALT_LPF_ALPHA * data.raw_altitude) + ((1.0f - ALT_LPF_ALPHA) * _prevAlt);
-
-    float dt = (micros() - _velocity_prevtime) / 1000000.0f;
-    if (_velocity_prevtime == 0.0f || dt <= 0.0f)
-    {
-        _velocity_prevtime = micros();
-    }
-
-    else
-    {
-        _velocity_prevtime = micros();
-        data.velocity = (data.filt_altitude - _prevAlt) / dt;
-    }
-    _prevAlt = data.filt_altitude;
 }
 
 void FlightLogic::checkLaunch(SensorData &data)

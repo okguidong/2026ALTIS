@@ -53,13 +53,22 @@
 #define UPDATE_GYRO 0x02
 #define UPDATE_BARO 0x04
 
-// --- Parameters ---
+// --- Filter Coefficients ---
 #define ALT_LPF_ALPHA 0.1f         // 고도 저주파 통과 필터 계수
+
+// --- Parameters ---
 #define LAUNCH_THRESHOLD_G 3.0f    // 발사 감지 임계값 (3G)
-#define EJECT1_TIMEOUT_MS 6000      // 발사 후 1단부 강제 사출 시간 (ms)
-#define EJECT2_TIMEOUT_MS 10000      // 발사 후 2단부 강제 사출 시간 (ms)
-#define EJECT_ALTITUDE 25.0f      // 사출 최소 고도 (m)
+
 #define SEPARATION_TIMEOUT_MS 3000 // 발사 후 강제 분리 시간 (ms)
 #define SEPARATION_ALTITUDE 50.0f // 단분리 최소 고도 (m)
+#define SEPARATION_velocity 5.0f    // 단분리 속도 (m/s) 아직 구현x
+
+#define EJECT_ALTITUDE 25.0f      // 사출 최소 고도 (m) 안전 장치
+
+#define EJECT1_TIMEOUT_MS 6000      // 발사 후 1단부 강제 사출 시간 (ms)
+#define EJECT1_velocity 5.0f    // 1단부 사출 속도 (m/s) 아직 구현x
+
+#define EJECT2_TIMEOUT_MS 10000      // 발사 후 2단부 강제 사출 시간 (ms)
+#define EJECT2_velocity 5.0f    // 2단부 사출 속도 (m/s) 아직 구현x
 
 #endif // CONFIG_H

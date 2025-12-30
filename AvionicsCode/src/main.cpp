@@ -6,16 +6,14 @@
 #include "FlightLogic.h"
 #include "DataLogger.h"
 #include "Recovery.h"
-
-Servo servo1;
-Servo servo2;
-Servo servo3;
+#include "navigation.h"
 
 // --- 객체 생성 ---
 BluetoothSerial SerialBT;
 SensorIMU imu;
 SensorBaro baro;
 FlightLogic logic;
+Navigation navigation;
 DataLogger logger;
 SensorData data;
 Recovery recovery;
@@ -26,7 +24,6 @@ void flightTask(void *pvParam)
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t xFrequency = pdMS_TO_TICKS(1);
 
-    bool buzzerState = true;
     bool parachute1Fired = false;
     bool parachute2Fired = false;
     bool separationFired = false;
@@ -66,6 +63,7 @@ void flightTask(void *pvParam)
             data.raw_altitude = baro.getAltitude();
         }
         // 비행 로직 업데이트
+        navigation.update(data,sensor_update);
         logic.update(data,sensor_update);
 
         // 비행 상태에 따른 액션
@@ -98,7 +96,7 @@ void flightTask(void *pvParam)
 
 void buzzerTask(void *pvParam) {
     pinMode(BUZZER_PIN, OUTPUT);
-    digitalWrite(BUZZER_PIN, LOW); // 초기 상태 끔
+    digitalWrite(BUZZER_PIN, LOW);
 
     while (true) {
         switch (data.flight_state) {
@@ -139,12 +137,12 @@ void buzzerTask(void *pvParam) {
                 break;
 
             // [상태 4] 하강 및 착륙 (Descent / Landed)
-            // (길고 시끄러운 소리)
+            // 1초마다 울림
             case 4:
                 digitalWrite(BUZZER_PIN, HIGH);
-                vTaskDelay(1000 / portTICK_PERIOD_MS); // 1초 길게
+                vTaskDelay(1000 / portTICK_PERIOD_MS);
                 digitalWrite(BUZZER_PIN, LOW);
-                vTaskDelay(1000 / portTICK_PERIOD_MS); // 1초 쉬고
+                vTaskDelay(1000 / portTICK_PERIOD_MS);
                 break;
                 
             default:
@@ -209,6 +207,7 @@ void setup()
             sum += analogRead(VAT_PIN);
         }
         SerialBT.printf("Vattery Voltage: %.2f V\n", sum * 0.0006667);
+        SerialBT.println("""Enter Sea Level Pressure (hPa) or Commands:\n- READY: Arm System\n- EJ1: Test Eject 1\n- EJ2: Test Eject 2\n- SEP: Test Separation");
         
         if (SerialBT.available())
         {
