@@ -8,7 +8,9 @@ Navigation::Navigation()
 void Navigation::reset()
 {
     _launchTime = 0;
-    _prevAlt = 0.0f;
+    _prevAltitude = 0.0f;
+    _prevPressure = 0.0f;
+    _launched = false;
 }
 
 void Navigation::update(SensorData &data, uint8_t sensor_update)
@@ -75,23 +77,34 @@ void Navigation::applyFilter_accel(SensorData &data)
 
 void Navigation::applyFilter_baro(SensorData &data)
 {
-    if (_prevAlt == 0.0f && data.raw_altitude != 0.0f)
+    if (data.filt_pressure == 0.0f)
     {
-        _prevAlt = data.raw_altitude;
+        if (data.raw_pressure > 0.0f) {
+            data.filt_pressure = data.raw_pressure;
+            data.filt_altitude = calculateAltitude(data.filt_pressure); 
+            _velocity_prevtime = micros();
+        }
+        return; 
     }
+    _prevAltitude = data.filt_altitude;
+    data.filt_pressure = (PRESSURE_LPF_ALPHA * data.raw_pressure) + ((1.0f - PRESSURE_LPF_ALPHA) * data.filt_pressure);
+    data.filt_altitude = calculateAltitude(data.filt_pressure);
 
-    data.filt_altitude = (ALT_LPF_ALPHA * data.raw_altitude) + ((1.0f - ALT_LPF_ALPHA) * _prevAlt);
+    float now = micros();
+    float dt = (now - _velocity_prevtime) / 1000000.0f;
 
-    float dt = (micros() - _velocity_prevtime) / 1000000.0f;
-    if (_velocity_prevtime == 0.0f || dt <= 0.0f)
+    if (dt > 0.0f && dt < 1.0f) 
     {
-        _velocity_prevtime = micros();
+        _velocity_prevtime = now;
+        data.velocity = (data.filt_altitude - _prevAltitude) / dt;
     }
+}
 
-    else
-    {
-        _velocity_prevtime = micros();
-        data.velocity = (data.filt_altitude - _prevAlt) / dt;
-    }
-    _prevAlt = data.filt_altitude;
+float Navigation::calculateAltitude(float pa) {
+        float Altitude = 44330.0 * (1.0 - pow(pa / _seaLevelPa, 0.1903));
+        return Altitude;
+}
+
+void Navigation::setSeaLevelPressure(float hpa) {
+    _seaLevelPa = hpa * 100.0f;
 }

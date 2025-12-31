@@ -1,8 +1,7 @@
 #include "BluetoothSerial.h"
 #include "Config.h"
 #include "RocketData.h"
-#include "SensorIMU.h"
-#include "SensorBaro.h"
+#include "Sensor.h"
 #include "FlightLogic.h"
 #include "DataLogger.h"
 #include "Recovery.h"
@@ -10,8 +9,7 @@
 
 // --- 객체 생성 ---
 BluetoothSerial SerialBT;
-SensorIMU imu;
-SensorBaro baro;
+Sensor sensor;
 FlightLogic logic;
 Navigation navigation;
 DataLogger logger;
@@ -38,29 +36,28 @@ void flightTask(void *pvParam)
         data.timestamp = micros();
 
         // 센서 데이터 수집
-        if (imu.isAccelReady())
+        if (sensor.isAccelReady())
         {
             sensor_update |= UPDATE_ACCEL;
-            imu.readAccel(t_ax, t_ay, t_az);
+            sensor.readAccel(t_ax, t_ay, t_az);
             data.ax = t_ax;
             data.ay = t_ay;
             data.az = t_az;
         }
 
-        if (imu.isGyroReady())
+        if (sensor.isGyroReady())
         {
             sensor_update |= UPDATE_GYRO;
-            imu.readGyro(t_gx, t_gy, t_gz);
+            sensor.readGyro(t_gx, t_gy, t_gz);
             data.gx = t_gx;
             data.gy = t_gy;
             data.gz = t_gz;
         }
 
-        if (baro.isReady())
+        if (sensor.isBaroReady())
         {
             sensor_update |= UPDATE_BARO;
-            data.pressure = baro.getPressure();
-            data.raw_altitude = baro.getAltitude();
+            data.raw_pressure = sensor.getPressure();
         }
         // 비행 로직 업데이트
         navigation.update(data,sensor_update);
@@ -160,17 +157,11 @@ void setup()
     pinMode(VAT_PIN, INPUT);
 
     bool sysOK = true;
-    if (!imu.begin())
+    if (!sensor.begin())
     {
-        Serial.println("IMU Fail");
+        Serial.println("Sensor Fail");
         sysOK = false;
-        SerialBT.println("ERR: IMU Init Failed!");
-    }
-    if (!baro.begin())
-    {
-        Serial.println("Baro Fail");
-        sysOK = false;
-        SerialBT.println("ERR: Barometer Init Failed!");
+        SerialBT.println("ERR: Sensor Init Failed!");
     }
     if (!logger.begin())
     {
@@ -188,14 +179,12 @@ void setup()
     {
         while (1)
         {
-            SerialBT.println("ERR: Sensor Check Failed!");
+            SerialBT.println("ERR: Check Failed!");
             digitalWrite(BUZZER_PIN, HIGH);
             delay(1000);
             ESP.restart();
         }
     }
-
-    logic.reset();
     SerialBT.println("System OK. Waiting for Config...");
 
     // 대기 모드
@@ -207,7 +196,7 @@ void setup()
             sum += analogRead(VAT_PIN);
         }
         SerialBT.printf("Vattery Voltage: %.2f V\n", sum * 0.0006667);
-        SerialBT.println("""Enter Sea Level Pressure (hPa) or Commands:\n- READY: Arm System\n- EJ1: Test Eject 1\n- EJ2: Test Eject 2\n- SEP: Test Separation");
+        SerialBT.println("Enter Sea Level Pressure (hPa) or Commands:\n- READY: Arm System\n- EJ1: Test Eject 1\n- EJ2: Test Eject 2\n- SEP: Test Separation");
         
         if (SerialBT.available())
         {
@@ -217,8 +206,8 @@ void setup()
             if (isdigit(s.charAt(0)))
             {
                 float p = s.toFloat();
-                baro.setSeaLevelPressure(p);
-                SerialBT.printf("Pressure Set: %.2f\n", p);
+                navigation.setSeaLevelPressure(p);
+                SerialBT.printf("Pressure Set: %.2f hpa\n", p);
             }
             else if (s.equalsIgnoreCase("READY"))
             {

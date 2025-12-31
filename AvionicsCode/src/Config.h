@@ -54,7 +54,7 @@
 #define UPDATE_BARO 0x04
 
 // --- Filter Coefficients ---
-#define ALT_LPF_ALPHA 0.1f         // 고도 저주파 통과 필터 계수
+#define PRESSURE_LPF_ALPHA 0.1f         // 대기압 저주파 통과 필터 계수
 
 // --- Parameters ---
 #define LAUNCH_THRESHOLD_G 3.0f    // 발사 감지 임계값 (3G)
