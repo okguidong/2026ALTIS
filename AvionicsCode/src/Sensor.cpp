@@ -21,8 +21,10 @@ bool Sensor::begin() {
     // 1. Barometer 초기화
     if (devBaro.beginSPI(BARO_CS_PIN, 4000000) != BMP3_OK) status = false;
     else {
-        devBaro.setODRFrequency(BMP3_ODR_200_HZ);
-        devBaro.setFilterCoefficient(BMP3_IIR_FILTER_COEFF_3);
+        devBaro.setODRFrequency(BMP3_ODR_50_HZ);
+        devBaro.setFilterCoefficient(BMP3_IIR_FILTER_DISABLE);
+        bmp3_odr_filter_settings osr = {BMP3_OVERSAMPLING_8X, BMP3_NO_OVERSAMPLING, BMP3_IIR_FILTER_DISABLE, BMP3_ODR_50_HZ};
+        devBaro.setOSRMultipliers(osr);
         bmp3_int_ctrl_settings s = {BMP3_INT_PIN_PUSH_PULL, BMP3_INT_PIN_ACTIVE_HIGH, BMP3_INT_PIN_NON_LATCH, BMP3_ENABLE};
         devBaro.setInterruptSettings(s);
         
@@ -34,7 +36,7 @@ bool Sensor::begin() {
     if (devAccel.begin() < 0) status = false;
     else {
         devAccel.setRange(Bmi088Accel::RANGE_24G);
-        devAccel.setOdr(Bmi088Accel::ODR_1600HZ_BW_145HZ);
+        devAccel.setOdr(Bmi088Accel::ODR_200HZ_BW_38HZ);
         devAccel.pinModeInt1(Bmi088Accel::PUSH_PULL, Bmi088Accel::ACTIVE_HIGH);
         devAccel.mapDrdyInt1(true);
 
@@ -46,7 +48,7 @@ bool Sensor::begin() {
     if (devGyro.begin() < 0) status = false;
     else {
         devGyro.setRange(Bmi088Gyro::RANGE_2000DPS);
-        devGyro.setOdr(Bmi088Gyro::ODR_1000HZ_BW_116HZ);
+        devGyro.setOdr(Bmi088Gyro::ODR_200HZ_BW_64HZ);
         devGyro.pinModeInt3(Bmi088Gyro::PUSH_PULL, Bmi088Gyro::ACTIVE_HIGH);
         devGyro.mapDrdyInt3(true);
 

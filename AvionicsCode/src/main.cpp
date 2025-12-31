@@ -86,8 +86,10 @@ void flightTask(void *pvParam)
             parachute2Fired = true;
         }
         // 데이터 저장
+        if(sensor_update != 0){
         logger.push(data);
         recovery.update();
+        }
     }
 }
 
