@@ -31,7 +31,7 @@ void flightTask(void *pvParam)
 
     while (true)
     {
-        uint8_t sensor_update= 0;
+        uint8_t sensor_update = 0;
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
         data.timestamp = micros();
 
@@ -60,8 +60,8 @@ void flightTask(void *pvParam)
             data.raw_pressure = sensor.getPressure();
         }
         // 비행 로직 업데이트
-        navigation.update(data,sensor_update);
-        logic.update(data,sensor_update);
+        navigation.update(data, sensor_update);
+        logic.update(data, sensor_update);
 
         // 비행 상태에 따른 액션
         if (data.flight_state == 0)
@@ -75,7 +75,7 @@ void flightTask(void *pvParam)
             recovery.trigger(SEPARATION);
             separationFired = true;
         }
-        else if (data.flight_state == 3&& !parachute1Fired)
+        else if (data.flight_state == 3 && !parachute1Fired)
         { // EJ1
             recovery.trigger(EJECT_1);
             parachute1Fired = true;
@@ -86,67 +86,73 @@ void flightTask(void *pvParam)
             parachute2Fired = true;
         }
         // 데이터 저장
-        if(sensor_update != 0){
-        logger.push(data);
-        recovery.update();
+        if (sensor_update != 0)
+        {
+            logger.push(data);
+            recovery.update();
         }
     }
 }
 
-void buzzerTask(void *pvParam) {
+void buzzerTask(void *pvParam)
+{
     pinMode(BUZZER_PIN, OUTPUT);
     digitalWrite(BUZZER_PIN, LOW);
 
-    while (true) {
-        switch (data.flight_state) {
-            
-            // [상태 0] 대기 모드 (Ready)
-            //(느리게 깜빡임)
-            case 0:
+    while (true)
+    {
+        switch (data.flight_state)
+        {
+
+        // [상태 0] 대기 모드 (Ready)
+        //(느리게 깜빡임)
+        case 0:
+            digitalWrite(BUZZER_PIN, HIGH);
+            vTaskDelay(100 / portTICK_PERIOD_MS); // 0.1초 켜짐
+            digitalWrite(BUZZER_PIN, LOW);
+            vTaskDelay(2000 / portTICK_PERIOD_MS); // 2초 꺼짐
+            break;
+
+        // [상태 1] 상승 중 (Boost/Coast)
+        case 1:
+            digitalWrite(BUZZER_PIN, LOW);
+            break;
+
+        // [상태 2] 분리/사출 대기 (Apogee Check)
+        // 특징: "삐비빅, 삐비빅" (경고음)
+        case 2:
+            for (int i = 0; i < 3; i++)
+            {
                 digitalWrite(BUZZER_PIN, HIGH);
-                vTaskDelay(100 / portTICK_PERIOD_MS); // 0.1초 켜짐
+                vTaskDelay(50 / portTICK_PERIOD_MS);
                 digitalWrite(BUZZER_PIN, LOW);
-                vTaskDelay(2000 / portTICK_PERIOD_MS); // 2초 꺼짐
-                break;
-
-            // [상태 1] 상승 중 (Boost/Coast)
-            case 1:
-                digitalWrite(BUZZER_PIN, LOW);
-                break;
-
-            // [상태 2] 분리/사출 대기 (Apogee Check)
-            // 특징: "삐비빅, 삐비빅" (경고음)
-            case 2:
-                for(int i=0; i<3; i++) {
-                    digitalWrite(BUZZER_PIN, HIGH);
-                    vTaskDelay(50 / portTICK_PERIOD_MS);
-                    digitalWrite(BUZZER_PIN, LOW);
-                    vTaskDelay(50 / portTICK_PERIOD_MS);
-                }
-                vTaskDelay(500 / portTICK_PERIOD_MS);
-                break;
-            case 3:
-                for(int i=0; i<3; i++) {
-                    digitalWrite(BUZZER_PIN, HIGH);
-                    vTaskDelay(50 / portTICK_PERIOD_MS);
-                    digitalWrite(BUZZER_PIN, LOW);
-                    vTaskDelay(50 / portTICK_PERIOD_MS);
-                }
-                vTaskDelay(500 / portTICK_PERIOD_MS);
-                break;
-
-            // [상태 4] 하강 및 착륙 (Descent / Landed)
-            // 1초마다 울림
-            case 4:
+                vTaskDelay(50 / portTICK_PERIOD_MS);
+            }
+            vTaskDelay(500 / portTICK_PERIOD_MS);
+            break;
+        case 3:
+            for (int i = 0; i < 3; i++)
+            {
                 digitalWrite(BUZZER_PIN, HIGH);
-                vTaskDelay(1000 / portTICK_PERIOD_MS);
+                vTaskDelay(50 / portTICK_PERIOD_MS);
                 digitalWrite(BUZZER_PIN, LOW);
-                vTaskDelay(1000 / portTICK_PERIOD_MS);
-                break;
-                
-            default:
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                break;
+                vTaskDelay(50 / portTICK_PERIOD_MS);
+            }
+            vTaskDelay(500 / portTICK_PERIOD_MS);
+            break;
+
+        // [상태 4] 하강 및 착륙 (Descent / Landed)
+        // 1초마다 울림
+        case 4:
+            digitalWrite(BUZZER_PIN, HIGH);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            digitalWrite(BUZZER_PIN, LOW);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            break;
+
+        default:
+            vTaskDelay(100 / portTICK_PERIOD_MS);
+            break;
         }
     }
 }
@@ -193,13 +199,17 @@ void setup()
     bool isArmed = false;
     while (!isArmed)
     {
-        long sum = 0;
-        for(int i=0; i<10; i++) {
-            sum += analogRead(VAT_PIN);
+        if (millis() % 1000 == 0)
+        {
+            long sum = 0;
+            for (int i = 0; i < 10; i++)
+            {
+                sum += analogRead(VAT_PIN);
+            }
+            SerialBT.printf("Vattery Voltage: %.2f V\n", sum * 0.0006667);
+            SerialBT.println("Enter Sea Level Pressure (hPa) or Commands:\n- READY: Arm System\n- SERVO1~3: Test Servo\n- PYRO1~3: Test PYRO");
         }
-        SerialBT.printf("Vattery Voltage: %.2f V\n", sum * 0.0006667);
-        SerialBT.println("Enter Sea Level Pressure (hPa) or Commands:\n- READY: Arm System\n- EJ1: Test Eject 1\n- EJ2: Test Eject 2\n- SEP: Test Separation");
-        
+
         if (SerialBT.available())
         {
             String s = SerialBT.readStringUntil('\n');
@@ -216,23 +226,37 @@ void setup()
                 SerialBT.println("ARMED!");
                 isArmed = true;
             }
-            else if (s.equalsIgnoreCase("EJ1"))
+            else if (s.equalsIgnoreCase("SERVO1"))
             {
-                SerialBT.println("test EJ1");
+                SerialBT.println("test SERVO1");
+                recovery.trigger(1);
+            }
+            else if (s.equalsIgnoreCase("SERVO2"))
+            {
+                SerialBT.println("test SERVO2");
+                recovery.trigger(2);
+            }
+            else if (s.equalsIgnoreCase("SERVO3"))
+            {
+                SerialBT.println("test SERVO3");
+                recovery.trigger(3);
+            }
+            else if (s.equalsIgnoreCase("PYRO1"))
+            {
+                SerialBT.println("test PYRO1");
                 recovery.trigger(4);
             }
-            else if (s.equalsIgnoreCase("EJ2"))
+            else if (s.equalsIgnoreCase("PYRO2"))
             {
-                SerialBT.println("test EJ2");
+                SerialBT.println("test PYRO2");
                 recovery.trigger(5);
             }
-            else if (s.equalsIgnoreCase("SEP"))
+            else if (s.equalsIgnoreCase("PYRO3"))
             {
-                SerialBT.println("test SEP");
+                SerialBT.println("test PYRO3");
                 recovery.trigger(6);
             }
         }
-        delay(100);
     }
 
     // 비행 태스크 시작 (Core 0, High Priority)
@@ -243,11 +267,13 @@ void setup()
 
 void loop()
 {
-    if (SerialBT.available()) {
+    if (SerialBT.available())
+    {
         String cmd = SerialBT.readStringUntil('\n');
         cmd.trim();
 
-        if (cmd.equalsIgnoreCase("REBOOT")) {
+        if (cmd.equalsIgnoreCase("REBOOT"))
+        {
             SerialBT.println("SYSTEM REBOOTING...");
             delay(100);
             ESP.restart();
