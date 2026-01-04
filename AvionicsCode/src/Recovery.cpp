@@ -9,7 +9,6 @@ Recovery::Recovery()
 
 bool Recovery::begin()
 {
-    // [Config 설정에 따라 핀 초기화]
     if (Pyro1_available) { pinMode(Pyro1, OUTPUT); digitalWrite(Pyro1, LOW); }
     if (Pyro2_available) { pinMode(Pyro2, OUTPUT); digitalWrite(Pyro2, LOW); }
     if (Pyro3_available) { pinMode(Pyro3, OUTPUT); digitalWrite(Pyro3, LOW); }
@@ -18,7 +17,7 @@ bool Recovery::begin()
     if (SERVO2_available) { _servo2.attach(Servo2); _servo2.write(Servo2_start); }
     if (SERVO3_available) { _servo3.attach(Servo3); _servo3.write(Servo3_start); }
 
-    // [연결 검사]
+    // 하드웨어 연결 검사가 안됨
     if (SERVO1_available && !_servo1.attached()) return false;
     if (SERVO2_available && !_servo2.attached()) return false;
     if (SERVO3_available && !_servo3.attached()) return false;

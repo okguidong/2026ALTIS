@@ -83,7 +83,7 @@ void FlightLogic::checkEJ1(SensorData &data)
         data.ej1_state |= 0x02;
     }
 
-    if (data.filt_altitude >= EJECT_ALTITUDE)
+    if (data.alt_baro >= EJECT_ALTITUDE)
     {
         altReached = 1;
         data.ej1_state |= 0x01;
@@ -106,7 +106,7 @@ void FlightLogic::checkEJ2(SensorData &data)
         data.ej2_state |= 0x02;
     }
 
-    if (data.filt_altitude >= EJECT_ALTITUDE)
+    if (data.alt_baro >= EJECT_ALTITUDE)
     {
         altReached = 1;
         data.ej2_state |= 0x01;
@@ -129,7 +129,7 @@ void FlightLogic::checkSeparation(SensorData &data)
         data.sep_state |= 0x02;
     }
 
-    if (data.filt_altitude >= SEPARATION_ALTITUDE)
+    if (data.alt_baro >= SEPARATION_ALTITUDE)
     {
         altReached = 1;
         data.sep_state |= 0x01;

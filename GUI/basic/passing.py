@@ -15,7 +15,7 @@ def bin_to_csv(bin_file, csv_file):
     
     # 2. CSV 헤더 정의 (순서대로)
     headers = [
-        'timestamp', 
+        'timestamp(us)', 
         'ax', 'ay', 'az', 
         'gx', 'gy', 'gz', 
         'qw', 'qx', 'qy', 'qz', 
@@ -67,7 +67,7 @@ def bin_to_csv(bin_file, csv_file):
 
 if __name__ == "__main__":
     # 여기에 변환할 bin 파일 경로를 입력하세요
-    input_filename = r"GUI\basic\flight_log_000.bin"   # 예: 'flight_log.bin'
+    input_filename = r"GUI\basic\flight_log_002.bin"   # 예: 'flight_log.bin'
     output_filename = r"GUI\basic\data.csv"  # 저장될 csv 파일 이름
     
-    bin_to_csv(input_filename, output_filename)
+    bin_to_csv(input_filename, output_filename) 

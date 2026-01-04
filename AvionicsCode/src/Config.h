@@ -1,6 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+//debug
+#define NAV_DEBUG
 // Pin Map
 //  IMU
 #define ACCEL_CS_PIN 25

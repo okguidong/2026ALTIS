@@ -32,6 +32,7 @@ void flightTask(void *pvParam)
     while (true)
     {
         uint8_t sensor_update = 0;
+        data.sensor_update = 0;
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
         data.timestamp = micros();
 
@@ -39,7 +40,7 @@ void flightTask(void *pvParam)
         if (sensor.isAccelReady())
         {
             sensor_update |= UPDATE_ACCEL;
-            sensor.readAccel(t_ax, t_ay, t_az);
+            sensor.readAccel(t_ax, t_ay, t_az);//m/s/s
             data.ax = t_ax;
             data.ay = t_ay;
             data.az = t_az;
@@ -48,7 +49,7 @@ void flightTask(void *pvParam)
         if (sensor.isGyroReady())
         {
             sensor_update |= UPDATE_GYRO;
-            sensor.readGyro(t_gx, t_gy, t_gz);
+            sensor.readGyro(t_gx, t_gy, t_gz);//rad/s
             data.gx = t_gx;
             data.gy = t_gy;
             data.gz = t_gz;
@@ -57,11 +58,12 @@ void flightTask(void *pvParam)
         if (sensor.isBaroReady())
         {
             sensor_update |= UPDATE_BARO;
-            data.raw_pressure = sensor.getPressure();
+            data.raw_p = sensor.getPressure();
         }
         // 비행 로직 업데이트
         navigation.update(data, sensor_update);
         logic.update(data, sensor_update);
+        recovery.update();
 
         // 비행 상태에 따른 액션
         if (data.flight_state == 0)
@@ -88,8 +90,8 @@ void flightTask(void *pvParam)
         // 데이터 저장
         if (sensor_update != 0)
         {
+            data.sensor_update = sensor_update;
             logger.push(data);
-            recovery.update();
         }
     }
 }
@@ -163,31 +165,33 @@ void setup()
     SerialBT.begin("ALTIS2026");
     SPI.begin();
     pinMode(VAT_PIN, INPUT);
+    pinMode(BUZZER_PIN, OUTPUT);
+    digitalWrite(BUZZER_PIN, LOW);
 
-    bool sysOK = true;
+    uint8_t sysOK = 0;
     if (!sensor.begin())
     {
+        sysOK |= 0x01;
         Serial.println("Sensor Fail");
-        sysOK = false;
         SerialBT.println("ERR: Sensor Init Failed!");
     }
     if (!logger.begin())
     {
         Serial.println("SD Fail");
-        sysOK = false;
+        sysOK |= 0x02;
         SerialBT.println("ERR: SD Card Init Failed!");
     }
     if (!recovery.begin())
     {
         Serial.println("Recovery Fail");
-        sysOK = false;
+        sysOK |= 0x04;
         SerialBT.println("ERR: Recovery System Init Failed!");
     }
-    if (!sysOK)
+    if (sysOK != 0x00)
     {
         while (1)
         {
-            SerialBT.println("ERR: Check Failed!");
+            SerialBT.printf("ERR: Check Failed! err: %b 0x01, 0x02, 0x04 == sensor, sdcard, recovery",sysOK);
             digitalWrite(BUZZER_PIN, HIGH);
             delay(1000);
             ESP.restart();
@@ -199,7 +203,7 @@ void setup()
     bool isArmed = false;
     while (!isArmed)
     {
-        if (millis() % 1000 == 0)
+        if (millis() % 5000 == 0)
         {
             long sum = 0;
             for (int i = 0; i < 10; i++)
@@ -207,7 +211,7 @@ void setup()
                 sum += analogRead(VAT_PIN);
             }
             SerialBT.printf("Vattery Voltage: %.2f V\n", sum * 0.0006667);
-            SerialBT.println("Enter Sea Level Pressure (hPa) or Commands:\n- READY: Arm System\n- SERVO1~3: Test Servo\n- PYRO1~3: Test PYRO");
+            SerialBT.println("Enter \n- Sea Level Pressure (hPa)\n- READY: Arm System\n- SERVO1~3: Test Servo\n- PYRO1~3: Test PYRO\n -REBOOT: System Rebooting");
         }
 
         if (SerialBT.available())
@@ -256,6 +260,11 @@ void setup()
                 SerialBT.println("test PYRO3");
                 recovery.trigger(6);
             }
+            else if(s.equalsIgnoreCase("REBOOT"))
+            {
+                SerialBT.println("SYSTEM REBOOTING");
+                ESP.restart();
+            }
         }
     }
 
@@ -274,9 +283,13 @@ void loop()
 
         if (cmd.equalsIgnoreCase("REBOOT"))
         {
-            SerialBT.println("SYSTEM REBOOTING...");
+            SerialBT.println("SYSTEM REBOOTING");
             delay(100);
             ESP.restart();
+        }
+        else if(cmd.equalsIgnoreCase("END")){
+            delay(1000);
+            while(1);
         }
     }
     delay(100);
