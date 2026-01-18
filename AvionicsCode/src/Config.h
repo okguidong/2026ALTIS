@@ -19,16 +19,10 @@
 #define Pyro1 21
 #define Pyro2 5
 #define Pyro3 17
-#define Pyro1_available true
-#define Pyro2_available true
-#define Pyro3_available true
 // servo
 #define Servo1 26
 #define Servo2 27
 #define Servo3 22
-#define SERVO1_available true
-#define SERVO2_available true
-#define SERVO3_available true
 #define Servo1_start 92
 #define Servo2_start 92
 #define Servo3_start 92
