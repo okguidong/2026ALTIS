@@ -213,7 +213,7 @@ void setup()
             SerialBT.printf("Vattery Voltage: %.2f V\n", sum * 0.0006667);
             SerialBT.println("Enter \n- Sea Level Pressure (hPa)\n- READY: Arm System\n- SERVO1~3: Test Servo\n- PYRO1~3: Test PYRO\n -REBOOT: System Rebooting");
         }
-
+        recovery.update();
         if (SerialBT.available())
         {
             String s = SerialBT.readStringUntil('\n');
@@ -268,9 +268,7 @@ void setup()
         }
     }
 
-    // 비행 태스크 시작 (Core 0, High Priority)
     xTaskCreatePinnedToCore(flightTask, "Flight", 10000, NULL, 10, NULL, 0);
-    // 버저 태스크 (Core 1, 우선순위 낮음 1)
     xTaskCreatePinnedToCore(buzzerTask, "Buzzer", 2048, NULL, 1, NULL, 1);
 }
 

@@ -29,9 +29,9 @@
 #define SERVO1_available true
 #define SERVO2_available true
 #define SERVO3_available true
-#define Servo1_start 90
-#define Servo2_start 90
-#define Servo3_start 90
+#define Servo1_start 92
+#define Servo2_start 92
+#define Servo3_start 92
 #define Servo1_end 0
 #define Servo2_end 0
 #define Servo3_end 0
