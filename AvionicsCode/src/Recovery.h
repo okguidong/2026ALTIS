@@ -7,11 +7,13 @@
 
 class Recovery {
 public:
-    Recovery();
     bool begin();
 
     void trigger(int id);
     void update();
+    void EJ1();
+    void EJ2();
+    void Separate();
 
 private:
     Servo _servo1, _servo2, _servo3;

@@ -1,26 +1,31 @@
 #include "Recovery.h"
 
-Recovery::Recovery()
-{
-    for (int i = 0; i < 7; i++)
-        _triggerTime[i] = 0;
-}
-
 bool Recovery::begin()
 {
-    pinMode(Pyro1, OUTPUT); digitalWrite(Pyro1, LOW);
-    pinMode(Pyro2, OUTPUT); digitalWrite(Pyro2, LOW);
-    pinMode(Pyro3, OUTPUT); digitalWrite(Pyro3, LOW);       
+    pinMode(Pyro1, OUTPUT);
+    digitalWrite(Pyro1, LOW);
+    pinMode(Pyro2, OUTPUT);
+    digitalWrite(Pyro2, LOW);
+    pinMode(Pyro3, OUTPUT);
+    digitalWrite(Pyro3, LOW);
 
-    _servo1.attach(Servo1); _servo1.write(Servo1_start);
-    _servo2.attach(Servo2); _servo2.write(Servo2_start);
-    _servo3.attach(Servo3); _servo3.write(Servo3_start);
+    _servo1.attach(Servo1);
+    _servo1.write(Servo1_start);
+    _servo2.attach(Servo2);
+    _servo2.write(Servo2_start);
+    _servo3.attach(Servo3);
+    _servo3.write(Servo3_start);
+
+    for (int i = 0; i < 7; i++)
+    _triggerTime[i] = 0;
+
     return true;
 }
 
 void Recovery::trigger(int id)
 {
-    if (id < 1 || id > 6) return;
+    if (id < 1 || id > 6)
+        return;
 
     _triggerTime[id] = millis();
 
@@ -51,15 +56,16 @@ void Recovery::trigger(int id)
 }
 void Recovery::update()
 {
-    unsigned long returnDelay = 500; 
+    unsigned long returnDelay = 500;
 
-    for (int id = 1; id <= 3; id++) 
+    for (int id = 1; id <= 3; id++)
     {
-        if (_triggerTime[id] == 0) continue;
+        if (_triggerTime[id] == 0)
+            continue;
 
         unsigned long elapsed = millis() - _triggerTime[id];
 
-        if (elapsed <= servo_time) 
+        if (elapsed <= servo_time)
         {
         }
 
@@ -68,45 +74,87 @@ void Recovery::update()
             switch (id)
             {
             case 1:
-                if (!_servo1.attached()) _servo1.attach(Servo1);
+                if (!_servo1.attached())
+                    _servo1.attach(Servo1);
                 _servo1.write(Servo1_start);
                 break;
             case 2:
-                if (!_servo2.attached()) _servo2.attach(Servo2);
+                if (!_servo2.attached())
+                    _servo2.attach(Servo2);
                 _servo2.write(Servo2_start);
                 break;
             case 3:
-                if (!_servo3.attached()) _servo3.attach(Servo3);
+                if (!_servo3.attached())
+                    _servo3.attach(Servo3);
                 _servo3.write(Servo3_start);
                 break;
             }
         }
-        else 
+        else
         {
             switch (id)
             {
-            case 1: if(_servo1.attached()) _servo1.detach(); break;
-            case 2: if(_servo2.attached()) _servo2.detach(); break;
-            case 3: if(_servo3.attached()) _servo3.detach(); break;
+            case 1:
+                if (_servo1.attached())
+                    _servo1.detach();
+                break;
+            case 2:
+                if (_servo2.attached())
+                    _servo2.detach();
+                break;
+            case 3:
+                if (_servo3.attached())
+                    _servo3.detach();
+                break;
             }
-            _triggerTime[id] = 0;
         }
     }
 
     for (int id = 4; id <= 6; id++)
     {
-        if (_triggerTime[id] == 0) continue;
+        if (_triggerTime[id] == 0)
+            continue;
         unsigned long elapsed = millis() - _triggerTime[id];
 
         if (elapsed > pyro_time)
         {
             switch (id)
             {
-            case 4: digitalWrite(Pyro1, LOW); break;
-            case 5: digitalWrite(Pyro2, LOW); break;
-            case 6: digitalWrite(Pyro3, LOW); break;
+            case 4:
+                digitalWrite(Pyro1, LOW);
+                break;
+            case 5:
+                digitalWrite(Pyro2, LOW);
+                break;
+            case 6:
+                digitalWrite(Pyro3, LOW);
+                break;
             }
-            _triggerTime[id] = 0;
+        }
+    }
+}
+void Recovery::EJ1()
+{
+    trigger(EJECT_1);
+}
+
+void Recovery::EJ2()
+{
+    trigger(EJECT_2);
+}
+
+void Recovery::Separate()
+{
+    if (_triggerTime[SEPARATION] == 0)
+    {
+        trigger(SEPARATION);
+    }
+    else
+    {
+        unsigned long dt = millis() - _triggerTime[SEPARATION];
+        if (dt > 500 && _triggerTime[RE_FIRE] == 0)
+        {
+            trigger(RE_FIRE);
         }
     }
 }

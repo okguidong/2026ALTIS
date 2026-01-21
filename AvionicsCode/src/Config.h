@@ -2,7 +2,7 @@
 #define CONFIG_H
 
 //debug
-#define NAV_DEBUG
+//#define NAV_DEBUG
 // Pin Map
 //  IMU
 #define ACCEL_CS_PIN 25
@@ -23,20 +23,19 @@
 #define Servo1 26
 #define Servo2 27
 #define Servo3 22
-#define Servo1_start 92
+#define Servo1_start 0
 #define Servo2_start 92
 #define Servo3_start 92
-#define Servo1_end 0
+#define Servo1_end 70 //단분리에 사용
 #define Servo2_end 0
 #define Servo3_end 0
 #define servo_time 1000 // 서보 작동 시간 (ms)
-#define pyro_time 500   // 파이로 작동 시간 (ms)
+#define pyro_time 1000   // 파이로 작동 시간 (ms)
 //1~3 서보 4~6 파이로
-#define EJECT_1 1 //1단부 사출 사용할 채널 
+#define EJECT_1 3 //1단부 사출 사용할 채널 
 #define EJECT_2 2 //2단부 사출 사용할 채널
-#define SEPARATION 3 //단분리 사출 사용할 채널
-
-
+#define SEPARATION 1 //단분리 사출 사용할 채널
+#define RE_FIRE 6 //재점화에 사용할 채널
 // sdcard
 #define SD_DATA0_PIN 2
 #define SD_DATA1_PIN 4
@@ -57,9 +56,10 @@
 
 #define SEPARATION_TIMEOUT_MS 3000 // 발사 후 강제 분리 시간 (ms)
 #define SEPARATION_ALTITUDE 50.0f // 단분리 최소 고도 (m)
+// #define SEPARATION_ALTITUDE -50.0f // 단분리 최소 고도 (m)
 #define SEPARATION_velocity 5.0f    // 단분리 속도 (m/s) 아직 구현x
-
 #define EJECT_ALTITUDE 25.0f      // 사출 최소 고도 (m) 안전 장치
+// #define EJECT_ALTITUDE -50.0f      // 사출 최소 고도 (m) 안전 장치
 
 #define EJECT1_TIMEOUT_MS 6000      // 발사 후 1단부 강제 사출 시간 (ms)
 #define EJECT1_velocity 5.0f    // 1단부 사출 속도 (m/s) 아직 구현x

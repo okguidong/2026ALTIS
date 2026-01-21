@@ -17,47 +17,37 @@ void FlightLogic::reset()
 
 void FlightLogic::update(SensorData &data, uint8_t sensor_update)
 {
-    // 1단계: 아직 발사 안 됨 (대기 상태)
+    // 발사전
     if (!_launched)
     {
+        //비행중 (아직 분리전)
         data.flight_state = 0; // Ready
         if (sensor_update & UPDATE_ACCEL)
         {
             checkLaunch(data);
         }
     }
-    // 2단계: 발사는 됐는데, 아직 분리는 안 됨 (상승 1단계)
+    //분리전
     else if (!_separated)
-    {
+    {//분리중
         data.flight_state = 1; // Boost / Coast
         if (sensor_update & UPDATE_BARO)
         {
             checkSeparation(data);
         }
     }
-    // 3단계: 분리는 됐는데, 아직 사출은 안 됨 (상승 2단계 또는 활공)
-    else if (!_EJ1)
-    {
+
+    // 분리 이후
+    else
+    {//사출중
         data.flight_state = 2; // Apogee Check
         if (sensor_update & UPDATE_BARO)
         {
             checkEJ1(data);
-        }
-    }
-    // 4단계: 1단부 사출까지 됨 (하강 상태)
-    else if (!_EJ2)
-    {
-        data.flight_state = 3; // Descent
-        if (sensor_update & UPDATE_BARO)
-        {
             checkEJ2(data);
         }
     }
-    // 4단계: 사출까지 됨 (하강 상태)
-    else
-    {
-        data.flight_state = 4; // Descent
-    }
+    //하강
 }
 
 void FlightLogic::checkLaunch(SensorData &data)
@@ -74,18 +64,16 @@ void FlightLogic::checkLaunch(SensorData &data)
 
 void FlightLogic::checkEJ1(SensorData &data)
 { // 사출 조건
-    static bool timeOut = false;
-    static bool altReached = false;
+    bool timeOut = (millis() - _launchTime > EJECT1_TIMEOUT_MS);
+    bool altReached = (data.alt_baro >= EJECT_ALTITUDE);
 
-    if (millis() - _launchTime > EJECT1_TIMEOUT_MS)
+    if (timeOut)
     {
-        timeOut = 1;
         data.ej1_state |= 0x02;
     }
 
-    if (data.alt_baro >= EJECT_ALTITUDE)
+    if (altReached)
     {
-        altReached = 1;
         data.ej1_state |= 0x01;
     }
 
