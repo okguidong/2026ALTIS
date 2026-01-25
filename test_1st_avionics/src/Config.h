@@ -1,0 +1,73 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+//debug
+//#define NAV_DEBUG
+// Pin Map
+//  IMU
+#define ACCEL_CS_PIN 25
+#define GYRO_CS_PIN 33
+#define ACCEL_INT_PIN 34
+#define GYRO_INT_PIN 35
+// Baro
+#define BARO_CS_PIN 32
+#define BARO_INT_PIN 39
+// interface
+#define VAT_PIN 36
+#define BUZZER_PIN 16
+// Pyro
+#define Pyro1 21
+#define Pyro2 5
+#define Pyro3 17
+// servo
+#define Servo1 26
+#define Servo2 27
+#define Servo3 22
+#define Servo1_start 45
+#define Servo2_start 92
+#define Servo3_start 45
+#define Servo1_end 90 //단분리에 사용
+#define Servo2_end 0
+#define Servo3_end 90
+#define servo_time 3000 // 서보 작동 시간 (ms)
+#define pyro_time 1000   // 파이로 작동 시간 (ms)
+//1~3 서보 4~6 파이로
+#define EJECT_1 3 //1단부 사출 사용할 채널 
+#define EJECT_2 2 //2단부 사출 사용할 채널
+#define SEPARATION 1 //단분리 사출 사용할 채널
+#define RE_FIRE 6 //재점화에 사용할 채널
+#define CHANGED_CHUTE 4 // 형상 변화용 파이로 채널
+// sdcard
+#define SD_DATA0_PIN 2
+#define SD_DATA1_PIN 4
+#define SD_DATA2_PIN 12
+#define SD_DATA3_PIN 13
+#define SD_CLK_PIN 14
+#define SD_CMD_PIN 15
+// bit flag
+#define UPDATE_ACCEL 0x01
+#define UPDATE_GYRO 0x02
+#define UPDATE_BARO 0x04
+
+// --- Filter Coefficients ---
+#define PRESSURE_LPF_ALPHA 0.1f         // 대기압 저주파 통과 필터 계수
+
+// --- Parameters ---
+#define LAUNCH_THRESHOLD_G 3.0f    // 발사 감지 임계값 (3G)
+
+#define SEPARATION_TIMEOUT_MS 4900 // 발사 후 강제 분리 시간 (ms)
+#define SEPARATION_ALTITUDE 25.0f // 단분리 최소 고도 (m)
+#define SEPARATION_velocity 5.0f    // 단분리 속도 (m/s) 아직 구현x
+// #define EJECT_ALTITUDE 25.0f      // 사출 최소 고도 (m) 안전 장치
+#define EJECT_ALTITUDE 25.0f      // 사출 최소 고도 (m) 안전 장치
+
+#define EJECT1_TIMEOUT_MS 6900      // 발사 후 1단부 강제 사출 시간 (ms)
+#define EJECT1_velocity 5.0f    // 1단부 사출 속도 (m/s) 아직 구현x
+
+#define EJECT2_TIMEOUT_MS 12300      // 발사 후 2단부 강제 사출 시간 (ms)
+#define EJECT2_velocity 5.0f    // 2단부 사출 속도 (m/s) 아직 구현x
+
+#define REFIRE_TIMER 1000          // 재점화 가능 시간 (ms) 분리신호 이후 시간
+
+#define CHANGED_CHUTE_ALTITUDE 250.0f // 형상 변화 최소 고도 (m)
+#endif // CONFIG_H

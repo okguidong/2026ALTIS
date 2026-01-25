@@ -1,0 +1,34 @@
+#ifndef FLIGHT_LOGIC_H
+#define FLIGHT_LOGIC_H
+
+#include "Config.h"
+#include "RocketData.h"
+#include <math.h>
+
+class FlightLogic {
+public:
+    FlightLogic();
+    void reset();
+    void update(SensorData &data, uint8_t sensor_update);
+
+    // Main에서 상태를 확인하기 위한 함수들
+    bool isLaunchDetected();
+    bool isEJect1();
+    bool isEJect2();
+    bool isSeparation();
+    unsigned long _launchTime;
+
+private:
+    float _prevAlt;
+    bool _launched;
+    bool _EJ1;
+    bool _EJ2;
+    bool _separated;
+
+    // 내부 로직 함수
+    void checkLaunch(SensorData &data);
+    void checkEJ1(SensorData &data);
+    void checkEJ2(SensorData &data);
+    void checkSeparation(SensorData &data);
+};
+#endif
